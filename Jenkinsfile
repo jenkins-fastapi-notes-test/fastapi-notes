@@ -5,10 +5,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Creating virtual environment and installing dependencies...'
-                sh '''
-                export PYTHONPATH=$(pwd)
+                bat '''
                 python -m venv .venv
-                source .venv/bin/activate
+                call .venv\\Scripts\\activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
@@ -17,25 +16,21 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo 'Running unit tests with coverage...'
-                sh '''
-                export PYTHONPATH=$(pwd)
-                source .venv/bin/activate
-                pytest --cov=app --cov-report=term-missing --maxfail=1 --disable-warnings -q
+                echo 'Running tests...'
+                bat '''
+                call .venv\\Scripts\\activate
+                pytest
                 '''
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline finished.'
+        success {
+            echo 'Pipeline finished successfully.'
         }
         failure {
             echo 'Pipeline failed.'
-        }
-        success {
-            echo 'Pipeline succeeded.'
         }
     }
 }
