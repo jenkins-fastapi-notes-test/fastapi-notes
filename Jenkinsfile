@@ -7,7 +7,7 @@ pipeline {
                 echo 'Creating virtual environment and installing dependencies...'
                 sh '''
                 export PYTHONPATH=$(pwd)
-                python3 -m venv .venv
+                python -m venv .venv
                 source .venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
