@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     stages {
+
         stage('Build') {
             steps {
                 echo 'Creating virtual environment and installing dependencies...'
                 bat '''
+                set PYTHONPATH=%CD%
                 python -m venv .venv
                 call .venv\\Scripts\\activate
                 pip install --upgrade pip
@@ -16,21 +18,25 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo 'Running tests...'
+                echo 'Running unit tests with coverage...'
                 bat '''
+                set PYTHONPATH=%CD%
                 call .venv\\Scripts\\activate
-                pytest
+                pytest --cov=app --cov-report=term-missing --maxfail=1 --disable-warnings -q
                 '''
             }
         }
     }
 
     post {
-        success {
-            echo 'Pipeline finished successfully.'
+        always {
+            echo 'Pipeline finished.'
         }
         failure {
             echo 'Pipeline failed.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
         }
     }
 }
