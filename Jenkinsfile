@@ -31,11 +31,11 @@ pipeline {
     post {
     success {
         echo 'Pipeline succeeded.'
-        githubNotify context: 'jenkins/ci', description: 'Build passed', status: 'SUCCESS'
+         publishChecks name: 'jenkins/ci', title: 'Build Status', summary: '✅ Build passed', conclusion: 'SUCCESS'
     }
     failure {
         echo 'Pipeline failed.'
-        githubNotify context: 'jenkins/ci', description: 'Build failed', status: 'FAILURE'
+        publishChecks name: 'jenkins/ci', title: 'Build Status', summary: '❌ Build failed', conclusion: 'FAILURE'
     }
     always {
         echo 'Pipeline finished.'
