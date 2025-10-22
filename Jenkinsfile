@@ -29,14 +29,17 @@ pipeline {
     }
 
     post {
-        always {
-            echo 'Pipeline finished.'
-        }
-        failure {
-            echo 'Pipeline failed.'
-        }
-        success {
-            echo 'Pipeline succeeded.'
-        }
+    success {
+        echo 'Pipeline succeeded.'
+        githubNotify context: 'jenkins/ci', description: 'Build passed', status: 'SUCCESS'
     }
+    failure {
+        echo 'Pipeline failed.'
+        githubNotify context: 'jenkins/ci', description: 'Build failed', status: 'FAILURE'
+    }
+    always {
+        echo 'Pipeline finished.'
+    }
+}
+
 }
