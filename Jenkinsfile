@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         VENV_DIR = ".venv"
-        DEV_EMAILS = "aram.cardenas84@gmail.com" // Replace with real list or Jenkins email group
+        DEV_EMAILS = "aram.cardenas84@gmail.com"
     }
 
     stages {
@@ -37,8 +37,25 @@ pipeline {
                 bat """
                 call %VENV_DIR%\\Scripts\\activate
                 echo Starting simulated deployment
-                echo (uvicorn --app-dir app main:app --reload)
+                uvicorn --app-dir app main:app --reload
                 """
+            }
+        }
+
+        stage('Declarative: Post Actions') {
+            steps {
+                echo 'Pipeline finished. Sending notifications...'
+                script {
+                    if (env.CHANGE_ID) {
+                        emailext(
+                            to: "${DEV_EMAILS}",
+                            subject: "Build ${currentBuild.fullDisplayName} finished",
+                            body: "The build ${currentBuild.fullDisplayName} has finished with status ${currentBuild.currentResult}."
+                        )
+                    } else {
+                        echo "Not a PR build, skipping email."
+                    }
+                }
             }
         }
     }
@@ -47,11 +64,7 @@ pipeline {
         success {
             script {
                 echo 'Pipeline succeeded.'
-
-                def checkName = env.CHANGE_ID ?
-                    'continuous-integration/jenkins/pr-head' :
-                    'continuous-integration/jenkins/branch'
-
+                def checkName = env.CHANGE_ID ? 'continuous-integration/jenkins/pr-head' : 'continuous-integration/jenkins/branch'
                 publishChecks(
                     name: checkName,
                     title: 'Build Status',
@@ -64,11 +77,7 @@ pipeline {
         failure {
             script {
                 echo 'Pipeline failed.'
-
-                def checkName = env.CHANGE_ID ?
-                    'continuous-integration/jenkins/pr-head' :
-                    'continuous-integration/jenkins/branch'
-
+                def checkName = env.CHANGE_ID ? 'continuous-integration/jenkins/pr-head' : 'continuous-integration/jenkins/branch'
                 publishChecks(
                     name: checkName,
                     title: 'Build Status',
@@ -79,24 +88,7 @@ pipeline {
         }
 
         always {
-            echo 'Pipeline finished. Sending notifications...'
-            script {
-                def status = currentBuild.currentResult
-                def buildType = env.CHANGE_ID ? "Pull Request #${env.CHANGE_ID}" : "Branch ${env.BRANCH_NAME}"
-                def subject = "Jenkins Pipeline Result: ${status} for ${buildType}"
-                def body = """
-                Pipeline finished with result: ${status}
-                Repository: ${env.JOB_NAME}
-                Build URL: ${env.BUILD_URL}
-                Type: ${buildType}
-                """
-
-                emailext(
-                    subject: subject,
-                    body: body,
-                    to: "${DEV_EMAILS}"
-                )
-            }
+            echo 'Pipeline finished.'
         }
     }
 }
